@@ -5,11 +5,11 @@ import librosa
 import scipy
 
 class ssm:
-    def __init__(self, audio_path, k = 10, t = 'chroma', normalized = 1, smooth = 1, thresh = 1):
-        self.audio, self.sr = self.read_audio(audio_path)
-        self.s = self.create_ssm(self.calculate_feat(t), normalized)
-        self.reduce_ssm(k)
-        self.duration = self.duration()
+    def __init__(self, audio_path, k = 10, t = 'mfcc', normalized = 1, smooth = 1, thresh = 1):
+        self.audio, self.sr = self.read_audio(audio_path) # audio, sampling rate
+        self.s = self.create_ssm(self.calculate_feat(t), normalized) # self similarity matrix
+        self.reduce_ssm(k) # reduce the size of the ssm
+        self.duration = self.duration() # duration of the audio
 
         if smooth == 1:
             self.path_smooth()
@@ -28,6 +28,8 @@ class ssm:
             oenv = librosa.onset.onset_strength(y = self.audio, sr = self.sr)
             feature = librosa.feature.tempogram(onset_envelope = oenv, sr = self.sr)
             return feature
+        elif t == 'mfcc':
+            return librosa.feature.mfcc(y = self.audio, sr = self.sr)
 
     def create_ssm(self, feat, normalized):
         print("Features calculated.")
@@ -49,26 +51,27 @@ class ssm:
         return s
 
     def dist(self, f, g):
-        return np.dot(f, g)
+        return np.dot(f, g)/(np.linalg.norm(f) * np.linalg.norm(g))
 
     def score(self, m, n):
         return self.s(m, n)
 
     def visualize(self):
-        plt.figure(figsize=(12, 8))
-        librosa.display.specshow(self.s, x_axis='frames', y_axis='frames', sr = self.sr, n_xticks=12)
+        import librosa.display
+        plt.figure(figsize=(12, 8))        
+        librosa.display.specshow(2*self.s.T-1, x_axis='s', y_axis='s', sr = self.sr, win_length = 2048, hop_length = self.sr/10)
         plt.title('SSM')
-        plt.set_cmap('hot_r')
+        plt.set_cmap('hot')
         plt.colorbar()
+        plt.gca().invert_yaxis()
         plt.show()
 
     def visualize_img(self):
-#        bin_s = self.s[self.s < 100]
         S = Image.fromarray(self.s * 100)
         S.show()
 
     def duration(self):
-        return librosa.core.get_duration(self.audio, self.sr)
+        return librosa.core.get_duration(y=self.audio, sr=self.sr)
 
     def reduce_ssm(self, k):
         self.s = self.s[::k,::k]

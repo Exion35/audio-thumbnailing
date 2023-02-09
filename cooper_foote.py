@@ -3,7 +3,7 @@
 
 import numpy as np
 import librosa
-import IPython.display
+from IPython.display import Audio, display
 from ssm import ssm
 
 class audio_thumb_cf:
@@ -37,6 +37,7 @@ class audio_thumb_cf:
         q_max = self.score_max(L)
         self.time = self.frame_to_time(q_max)
         print("The best thumbnail for this song with length " + str(round(self.frame_to_time(L), 2)) + " starts at time: " + str(round(self.frame_to_time(q_max), 2)) + "s")
+        return round(self.frame_to_time(L), 2), round(self.frame_to_time(q_max), 2)
 
     def frame_to_time(self, f):
         dt = self.ssm.duration/self.ssm.s.shape[0]
@@ -46,9 +47,9 @@ class audio_thumb_cf:
         df = self.ssm.s.shape[0]/self.ssm.duration
         return int(df*time)
 
-    def display(self):
-        if self.time == 0:
-            print("run thumb_time() or thumb_alpha()")
-        else:
-            frame = int(len(self.y)*self.time_to_frame(self.time)/self.ssm.duration)
-            IPython.display.Audio(data = self.y[frame:], rate = self.sr)
+    def display_excerpt(self, length):
+        """
+        Displays the best thumbnail for the song for a given length.
+        """
+        d, start = self.thumb_time(length)
+        display(Audio(self.y[int(start*self.sr) : int((start + d)*self.sr)], rate = self.sr))
