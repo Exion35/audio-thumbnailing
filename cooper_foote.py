@@ -5,9 +5,17 @@ import numpy as np
 import librosa
 from IPython.display import Audio, display
 from ssm import ssm
+from pydub import AudioSegment
+from scipy.io import wavfile
 
 class audio_thumb_cf:
-    def __init__(self, audio_path, t = 'chroma', k = 10, smooth = 1, thresh = 1):
+    def __init__(self, audio_path, format, t = 'chroma', k = 10, smooth = 1, thresh = 1):
+        if format != 'wav':
+            sound = AudioSegment.from_file(audio_path, format=format)
+            y = np.array(sound.get_array_of_samples())
+            sr = sound.frame_rate
+            audio_path = audio_path.split('.')[0] + '.wav'
+            wavfile.write(audio_path, 2*sr, y)
         self.ssm = ssm(audio_path, k, t, smooth, thresh)
         self.y, self.sr  = librosa.load(audio_path)
         self.time = 0
@@ -52,4 +60,4 @@ class audio_thumb_cf:
         Displays the best thumbnail for the song for a given length.
         """
         d, start = self.thumb_time(length)
-        display(Audio(self.y[int(start*self.sr) : int((start + d)*self.sr)], rate = self.sr))
+        display(Audio(self.y[int(start*self.sr) : int((start + d)*self.sr)], rate = self.ssm.sr))
