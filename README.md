@@ -10,20 +10,22 @@ These instructions will guide you through the process of cloning the repository,
 
 Before you start, make sure you have the following packages installed:
 
-* numpy
-* librosa
+* `numpy`
+* `scipy`
+* `pydub`
+* `librosa`
 
 You can install these packages by running the following command:
 
-```sh
-pip install numpy librosa
+```
+pip install numpy scipy pydub librosa
 ```
 
 ### Cloning the repository
 
 To clone the repository, run the following command in your terminal (for SSH):
 
-```sh
+```
 git clone git@github.com:Exion35/audio-thumbnailing.git
 ```
 
