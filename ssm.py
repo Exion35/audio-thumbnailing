@@ -59,7 +59,7 @@ class ssm:
     def visualize(self):
         import librosa.display
         plt.figure(figsize=(12, 8))        
-        librosa.display.specshow(2*self.s.T-1, x_axis='s', y_axis='s', sr = self.sr, win_length = 2048, hop_length = self.sr/10)
+        librosa.display.specshow(self.s.T, x_axis='s', y_axis='s', sr = self.sr, win_length = 2048, hop_length = self.sr/10)
         plt.title('SSM')
         plt.set_cmap('hot')
         plt.colorbar()
