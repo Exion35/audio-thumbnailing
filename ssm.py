@@ -29,7 +29,11 @@ class ssm:
             feature = librosa.feature.tempogram(onset_envelope = oenv, sr = self.sr)
             return feature
         elif t == 'mfcc':
-            return librosa.feature.mfcc(y = self.audio, sr = self.sr, n_mfcc=45)
+            mfccs = librosa.feature.mfcc(y = self.audio, sr = self.sr, n_mfcc=45)
+            mfccs = mfccs[np.argsort(np.var(mfccs, axis = 1))[::-1]]
+            mfccs = mfccs[:15]
+            mfccs = (mfccs - np.mean(mfccs, axis = 1)[:, np.newaxis]) / np.std(mfccs, axis = 1)[:, np.newaxis]
+            return mfccs
 
     def create_ssm(self, feat, normalized):
         print("Features calculated.")
@@ -58,12 +62,18 @@ class ssm:
 
     def visualize(self):
         import librosa.display
-        plt.figure(figsize=(12, 8))        
-        librosa.display.specshow(self.s.T, x_axis='s', y_axis='s', sr = self.sr, win_length = 2048, hop_length = self.sr/10)
-        plt.title('SSM')
+        fig, ax = plt.subplots(figsize=(12, 8))   
+        librosa.display.specshow(self.s.T, x_axis='s', y_axis='s', sr=self.sr, win_length = 2205, hop_length=2*2205)
+        # def format_yticks(y, position):
+        #     value = y / 60.0 # Convert seconds to minutes
+        #     minutes = int(value)
+        #     seconds = int((value - minutes) * 60)
+        #     return '{:d}:{:02d}'.format(minutes, seconds)
+        # ax.yaxis.set_major_formatter(plt.FuncFormatter(format_yticks))
+        ax.set_title('SSM')
         plt.set_cmap('hot')
         plt.colorbar()
-        plt.gca().invert_yaxis()
+        ax.invert_yaxis()
         plt.show()
 
     def visualize_img(self):
