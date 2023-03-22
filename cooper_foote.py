@@ -1,4 +1,4 @@
-# Audio Thumbnailing based on "Automatic Music Summarization via Similatiry Analysis",
+# Audio Thumbnailing based on "Automatic Music Summarization via Similarity Analysis",
 # by Matthew Cooper and Jonathan Foote.
 
 import numpy as np

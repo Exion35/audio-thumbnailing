@@ -29,7 +29,7 @@ class ssm:
             feature = librosa.feature.tempogram(onset_envelope = oenv, sr = self.sr)
             return feature
         elif t == 'mfcc':
-            return librosa.feature.mfcc(y = self.audio, sr = self.sr)
+            return librosa.feature.mfcc(y = self.audio, sr = self.sr, n_mfcc=45)
 
     def create_ssm(self, feat, normalized):
         print("Features calculated.")
