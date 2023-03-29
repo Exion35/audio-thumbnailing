@@ -55,25 +55,59 @@ class ssm:
         return s
 
     def dist(self, f, g):
-        return np.dot(f, g)/(np.linalg.norm(f) * np.linalg.norm(g))
+        return np.dot(f, g)
 
     def score(self, m, n):
         return self.s(m, n)
+    
+    def visualize_mfcc(self):
+        import librosa.display
+        feat = self.calculate_feat('mfcc')
+        fig, ax = plt.subplots(figsize=(12, 3))   
+        librosa.display.specshow(librosa.power_to_db(feat, ref=np.max), x_axis='s')
+        ax.set_ylabel('MFCC')
+        plt.set_cmap('viridis')
+        plt.colorbar()
+        plt.show()
 
     def visualize(self):
         import librosa.display
         fig, ax = plt.subplots(figsize=(12, 8))   
-        librosa.display.specshow(self.s.T, x_axis='s', y_axis='s', sr=self.sr, win_length = 2205, hop_length=2*2205)
-        # def format_yticks(y, position):
-        #     value = y / 60.0 # Convert seconds to minutes
-        #     minutes = int(value)
-        #     seconds = int((value - minutes) * 60)
-        #     return '{:d}:{:02d}'.format(minutes, seconds)
-        # ax.yaxis.set_major_formatter(plt.FuncFormatter(format_yticks))
+        librosa.display.specshow(self.s.T, x_axis='s', y_axis='s', sr=self.sr, win_length=2048, hop_length=2*2205)
         ax.set_title('SSM')
         plt.set_cmap('hot')
         plt.colorbar()
         ax.invert_yaxis()
+        plt.show()
+
+    def checkerboard_kernel(self, k):
+        C = np.array([[1, -1], [-1, 1]])
+        O = np.ones((k, k))
+        return np.kron(C, O)
+    
+    def cross_corr(self, k):
+        kern = self.checkerboard_kernel(k)
+        return np.maximum(0, scipy.signal.correlate(self.s, kern, mode='same'))
+
+    def visualize_cross_corr(self, k=2, d=None, pen=10):
+        import ruptures as rpt
+        fig, ax = plt.subplots(figsize=(12, 3))   
+        ax.set_ylabel('Novelty score')
+        ax.set_xlabel('Time (s)')
+        cross_corr = self.cross_corr(k).sum(axis = 0)
+        algo = rpt.Pelt(model="rbf").fit(cross_corr)
+        result = algo.predict(pen=pen)
+        for i in range(len(result) - 1):
+            ax.axvspan(0, result[0] * self.duration / self.s.shape[0], color='lightblue', alpha=0.4)
+            if i % 2 == 0:
+                ax.axvspan(result[i] * self.duration / self.s.shape[0], result[i+1] * self.duration / self.s.shape[0], color='lightcoral', alpha=0.4)
+            else:
+                ax.axvspan(result[i] * self.duration / self.s.shape[0], result[i+1] * self.duration / self.s.shape[0], color='lightblue', alpha=0.4)
+            ax.axvline(x = result[i] * self.duration / self.s.shape[0], linestyle='--', color = 'black')
+        ax.plot(np.arange(self.s.shape[0]) * self.duration / self.s.shape[0], cross_corr)
+        if d is not None:
+            for dx in d:
+                ax.axvline(x = dx, linestyle='--', color = 'r')
         plt.show()
 
     def visualize_img(self):
